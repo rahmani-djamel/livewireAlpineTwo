@@ -5,58 +5,52 @@ namespace App\Http\Livewire;
 use App\Models\Post;
 use Livewire\Component;
 use Livewire\WithPagination;
+use WireUi\Traits\Actions;
 
 class PostForm extends Component
 {
 
-    use WithPagination;
+    use WithPagination,Actions;
+    
 
     public $title;
     public $description;
     public $post_id;
 
     protected $rules = [
-        'title' => 'required',
-        'description' => 'required',
+        'title' =>'required|unique:posts|max:255|min:10',
+        'description' => 'required|max:255|min:20',
     ];
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
+   
 
     public function storePost()
     {
+
         $this->validate();
-        $post = Post::create([
-            'title' => $this->title,
-            'description' => $this->description
-        ]);
-        $this->reset();
-    }
 
-    public function edit($id)
-    {
-        $post = Post::find($id);
-        $this->post_id = $post->id;
-        $this->title = $post->title;
-        $this->description = $post->description;
-    }
+        $post = new Post();
 
-    public function update()
-    {
-        $post = Post::updateOrCreate(
-            [
-                'id'   => $this->post_id,
-            ],
-            [
-                'title' => $this->title,
-                'description' => $this->description
-            ],
+        $post->title = $this->title;
 
+        $post->description = $this->description;
+
+        $post->save();
+
+        $this->notification()->success(
+            $title = 'Post saved',
+            $description = 'Your profile was successfull saved'
         );
-
         $this->reset();
+        
     }
-    public function destroy($id)
-    {
-        Post::destroy($id);
-    }
+  
+   
    
 
 
